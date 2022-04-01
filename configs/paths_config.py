@@ -1,12 +1,12 @@
 dataset_paths = {
 	'celeba_train': '',
 	'celeba_test': '',
-	'celeba_train_4seg': '',
-	'celeba_test_4seg': '',	
+	'celeba_train_4seg': '/content/CelebA-HQ/train/images',
+	'celeba_test_4seg': '/content/CelebA-HQ/test/images',	
 	'celeba_train_sketch': '',
 	'celeba_test_sketch': '',
-	'celeba_train_segmentation': '',
-	'celeba_test_segmentation': '',
+	'celeba_train_segmentation': '/content/CelebA-HQ/train/labels',
+	'celeba_test_segmentation': '/content/CelebA-HQ/test/labels',
 	'ffhq': '',
 }
 
