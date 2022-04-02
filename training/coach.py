@@ -29,6 +29,10 @@ class Coach:
 		self.device = 'cuda:0'  # TODO: Allow multiple GPU? currently using CUDA_VISIBLE_DEVICES
 		self.opts.device = self.device
 
+		if self.opts.use_wandb:
+			from utils.wandb_utils import WBLogger
+			self.wb_logger = WBLogger(self.opts)
+
 		# Initialize network
 		self.net = E2Style(self.opts).to(self.device)
 
@@ -95,6 +99,10 @@ class Coach:
 					self.print_metrics(loss_dict, prefix='train')
 					self.log_metrics(loss_dict, prefix='train')
 
+				# Log images of first batch and save image interval to wandb
+				if self.opts.use_wandb and (batch_idx == 0 or (self.global_step % self.opts.image_interval == 0)):
+					self.wb_logger.log_images_to_wandb(x, y, y_hat, id_logs, prefix="train", step=self.global_step, opts=self.opts)
+
 				# Validation related
 				val_loss_dict = None
 				if self.global_step % self.opts.val_interval == 0 or self.global_step == self.opts.max_steps:
@@ -132,6 +140,10 @@ class Coach:
 									  title='images/test/faces',
 									  subscript='{:04d}'.format(batch_idx))
 
+			# Log images of first batch to wandb
+			if self.opts.use_wandb and batch_idx == 0:
+				self.wb_logger.log_images_to_wandb(x, y, y_hat, id_logs, prefix="test", step=self.global_step, opts=self.opts)
+
 			# For first step just do sanity test on small amount of data
 			if self.global_step == 0 and batch_idx >= 4:
 				if self.opts.training_stage == 1:
@@ -158,6 +170,8 @@ class Coach:
 		with open(os.path.join(self.checkpoint_dir, 'timestamp.txt'), 'a') as f:
 			if is_best:
 				f.write('**Best**: Step - {}, Loss - {:.3f} \n{}\n'.format(self.global_step, self.best_val_loss, loss_dict))
+				if self.opts.use_wandb:
+					self.wb_logger.log_best_model()
 			else:
 				f.write('Step - {}, \n{}\n'.format(self.global_step, loss_dict))
 
@@ -199,6 +213,9 @@ class Coach:
 		                                    opts=self.opts)
 		train_dataset = train_dataset_celeba
 		test_dataset = test_dataset_celeba
+		if self.opts.use_wandb:
+			self.wb_logger.log_dataset_wandb(train_dataset, dataset_name="Train")
+			self.wb_logger.log_dataset_wandb(test_dataset, dataset_name="Test")
 		print("Number of training samples: {}".format(len(train_dataset)))
 		print("Number of test samples: {}".format(len(test_dataset)))
 		return train_dataset, test_dataset
@@ -241,6 +258,8 @@ class Coach:
 	def log_metrics(self, metrics_dict, prefix):
 		for key, value in metrics_dict.items():
 			self.logger.add_scalar('{}/{}'.format(prefix, key), value, self.global_step)
+		if self.opts.use_wandb:
+			self.wb_logger.log(prefix, metrics_dict, self.global_step)
 
 	def print_metrics(self, metrics_dict, prefix):
 		print('Metrics for {}, step {}'.format(prefix, self.global_step))
