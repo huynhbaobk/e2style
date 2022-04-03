@@ -8,6 +8,8 @@ from torchvision import models
 
 from criteria.lpips.utils import normalize_activation
 
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def get_network(net_type: str):
     if net_type == 'alex':

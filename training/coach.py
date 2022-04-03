@@ -18,7 +18,7 @@ from datasets.images_dataset import ImagesDataset
 from criteria.lpips.lpips import LPIPS
 from models.e2style import E2Style
 from training.ranger import Ranger
-
+import time
 
 class Coach:
 	def __init__(self, opts):
@@ -83,6 +83,7 @@ class Coach:
 			self.net.encoder_refinestage_list[self.opts.training_stage-2].train()
 		while self.global_step < self.opts.max_steps:
 			for batch_idx, batch in enumerate(self.train_dataloader):
+				start = time.time()
 				self.optimizer.zero_grad()
 				x, y = batch
 				x, y = x.to(self.device).float(), y.to(self.device).float()
@@ -122,6 +123,8 @@ class Coach:
 					break
 
 				self.global_step += 1
+				stop = time.time()
+				print("The time of execution the step is: ", stop-start)
 
 	def validate(self):
 		self.net.eval()
