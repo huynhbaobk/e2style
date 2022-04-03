@@ -10,7 +10,7 @@ class WBLogger:
 
     def __init__(self, opts):
         wandb_run_name = os.path.basename(opts.exp_dir)
-        wandb.init(project="pixel2style2pixel", config=vars(opts), name=wandb_run_name)
+        wandb.init(project="e2style", config=vars(opts), name=wandb_run_name)
 
     @staticmethod
     def log_best_model():
